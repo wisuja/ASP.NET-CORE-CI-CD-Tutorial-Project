@@ -15,6 +15,9 @@ pipelines:
         caches:
           - dotnetcore
         script:
+          # NOTE: zip isn't installed in the image, so we must manually add it
+          - apt-get update
+          - apt-get install zip -y
           - dotnet restore
           - dotnet build
           - dotnet test
