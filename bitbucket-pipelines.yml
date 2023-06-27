@@ -18,8 +18,8 @@ pipelines:
           - dotnet restore
           - dotnet build
           - dotnet test
-          - dotnet publish ./web/web.csproj -c Release -o ./publish
+          - dotnet publish ./WebApp/WebApp.csproj -c Release -o ./publish
           - cd ./publish
-          - zip -r web.zip .
+          - zip -r WebApp.zip .
         artifacts:
-          - "publish/web/web.zip"
+          - "publish/WebApp/WebApp.zip"
