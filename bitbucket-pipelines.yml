@@ -10,12 +10,16 @@ image: mcr.microsoft.com/dotnet/sdk:6.0
 
 pipelines:
   default:
-      - step:
-          name: Build and Test
-          caches:
-            - dotnetcore
-          script:
-            - dotnet restore
-            - dotnet build
-            - dotnet test
-
+    - step:
+        name: Build and Test
+        caches:
+          - dotnetcore
+        script:
+          - dotnet restore
+          - dotnet build
+          - dotnet test
+          - dotnet publish ./web/web.csproj -c Release -o ./publish
+          - cd ./publish
+          - zip -r web.zip .
+        artifacts:
+          - "publish/web/web.zip"
