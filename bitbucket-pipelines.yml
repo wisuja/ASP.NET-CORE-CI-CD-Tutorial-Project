@@ -24,5 +24,8 @@ pipelines:
           - dotnet publish ./WebApp/WebApp.csproj -c Release -o ./publish
           - cd ./publish
           - zip -r WebApp.zip .
+          - mkdir –p $BITBUCKET_CLONE_DIR/dist
+          - cp -R WebApp.zip $BITBUCKET_CLONE_DIR/dist
+          - ls -lah $BITBUCKET_CLONE_DIR/dist
         artifacts:
-          - "publish/WebApp/WebApp.zip"
+          - dist/**
