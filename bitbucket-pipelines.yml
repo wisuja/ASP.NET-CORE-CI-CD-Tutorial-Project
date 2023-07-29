@@ -76,8 +76,13 @@ pipelines:
         deployment: staging
         script:
           - dotnet publish -c Release -o ./publish
+          - cd ./publish
+          - zip -r WebApp.zip .
+          - mkdir –p $BITBUCKET_CLONE_DIR/dist
+          - cp -R WebApp.zip $BITBUCKET_CLONE_DIR/dist
+          - ls -lah $BITBUCKET_CLONE_DIR/dist
         artifacts:
-          - publish/**
+          - dist/**
     - step:
         name: Deploy to AWS EC2
         deployment: production
@@ -86,7 +91,7 @@ pipelines:
           - apt-get update && apt-get install -y awscli
 
           # Copy the published artifacts to the EC2 instance
-          - aws s3 cp ./publish s3://aws-s3-dev/
+          - aws s3 cp ./dist/WebApp.zip s3://aws-s3-dev/
 
           # SSH into the EC2 instance and deploy the app using IIS
           - ssh william@13.229.216.83 "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 sync s3://aws-s3-dev/publish C:/Websites/NETCoreWebApp && iisreset /restart"
