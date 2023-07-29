@@ -29,3 +29,15 @@ pipelines:
           - ls -lah $BITBUCKET_CLONE_DIR/dist
         artifacts:
           - dist/**
+    - step:
+        name: Deploy To S3
+        deployment: production
+        script:
+          - pipe: atlassian/aws-s3-deploy:0.3.8
+            variables:
+              AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+              AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+              AWS_DEFAULT_REGION: "ap-southeast-1"
+              S3_BUCKET: "aws-s3-dev"
+              LOCAL_PATH: "dist"
+              ACL: "public-read"
