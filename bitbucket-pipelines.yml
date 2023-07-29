@@ -40,4 +40,4 @@ pipelines:
               AWS_DEFAULT_REGION: "ap-southeast-1"
               S3_BUCKET: "aws-s3-dev"
               LOCAL_PATH: "dist"
-              ACL: "public-read"
+              ACL: "bucket-owner-full-control"
