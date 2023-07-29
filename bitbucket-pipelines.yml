@@ -85,17 +85,8 @@ pipelines:
           # Install AWS CLI if it's not pre-installed in the image
           - apt-get update && apt-get install -y awscli
 
-          # Install and configure AWS Elastic Beanstalk CLI (EB CLI)
-          # Replace 'YOUR_EB_CLI_VERSION' with the desired EB CLI version
-          - apt-get install -y python3-pip
-          - pip3 install --upgrade awsebcli
-          - echo -e "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID\nAWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY\n" >> $HOME/.aws/credentials
-
           # Copy the published artifacts to the EC2 instance
           - aws s3 cp ./publish s3://aws-s3-dev/
 
           # SSH into the EC2 instance and deploy the app using IIS
-          - ssh william@13.229.216.83 "aws s3 sync s3://aws-s3-dev/publish C:/Websites/NETCoreWebApp" # Replace 'user' and 'your-ec2-instance-ip' accordingly
-
-          # Optionally, restart IIS on the EC2 instance
-          - ssh william@13.229.216.83 "iisreset /restart" # Replace 'user' and 'your-ec2-instance-ip' accordingly
+          - ssh william@13.229.216.83 "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 sync s3://aws-s3-dev/publish C:/Websites/NETCoreWebApp && iisreset /restart"
