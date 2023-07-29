@@ -43,7 +43,6 @@ pipelines:
               ACL: "bucket-owner-full-control"
     - step:
         name: Copy From S3 to EC2
-        deployment: production
         script:
           # Set up AWS CLI
           - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
