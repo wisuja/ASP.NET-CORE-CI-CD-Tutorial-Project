@@ -41,3 +41,20 @@ pipelines:
               S3_BUCKET: "aws-s3-dev"
               LOCAL_PATH: "dist"
               ACL: "bucket-owner-full-control"
+    - step:
+        name: Copy From S3 to EC2
+        deployment: production
+        script:
+          # Set up AWS CLI
+          - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          - unzip awscliv2.zip
+          - sudo ./aws/install
+          - aws --version
+
+          # Set up AWS credentials (replace the placeholders with your actual credentials)
+          - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          - aws configure set default.region ap-southeast-1
+
+          # Download the file from S3 to your EC2 instance
+          - aws s3 cp s3://aws-s3-dev/WebApp.zip C:\Websites\NETCoreWebApp
