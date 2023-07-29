@@ -1,10 +1,63 @@
-#  Template .NET Core build
+# #  Template .NET Core build
 
-#  This template allows you to validate your .NET Core package.
-#  The workflow allows running tests and code linting on the default branch.
+# #  This template allows you to validate your .NET Core package.
+# #  The workflow allows running tests and code linting on the default branch.
 
-# To run your pipeline on a Windows machine, create a self-hosted Windows runner.
-# For instructions on setting up a Windows runner, see https://support.atlassian.com/bitbucket-cloud/docs/set-up-runners-for-windows/
+# # To run your pipeline on a Windows machine, create a self-hosted Windows runner.
+# # For instructions on setting up a Windows runner, see https://support.atlassian.com/bitbucket-cloud/docs/set-up-runners-for-windows/
+
+# image: mcr.microsoft.com/dotnet/sdk:6.0
+
+# pipelines:
+#   default:
+#     - step:
+#         name: Build and Test
+#         caches:
+#           - dotnetcore
+#         script:
+#           # NOTE: zip isn't installed in the image, so we must manually add it
+#           - apt-get update
+#           - apt-get install zip -y
+#           - dotnet restore
+#           - dotnet build
+#           - dotnet test
+#           - dotnet publish ./WebApp/WebApp.csproj -c Release -o ./publish
+#           - cd ./publish
+#           - zip -r WebApp.zip .
+#           - mkdir –p $BITBUCKET_CLONE_DIR/dist
+#           - cp -R WebApp.zip $BITBUCKET_CLONE_DIR/dist
+#           - ls -lah $BITBUCKET_CLONE_DIR/dist
+#         artifacts:
+#           - dist/**
+#     - step:
+#         name: Deploy To S3
+#         deployment: production
+#         script:
+#           - pipe: atlassian/aws-s3-deploy:0.3.8
+#             variables:
+#               AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+#               AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+#               AWS_DEFAULT_REGION: "ap-southeast-1"
+#               S3_BUCKET: "aws-s3-dev"
+#               LOCAL_PATH: "dist"
+#               ACL: "bucket-owner-full-control"
+#     - step:
+#         name: Copy From S3 to EC2
+#         script:
+#           # Set up AWS CLI
+#           - apt-get update && apt-get install -y unzip
+#           - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+#           - unzip awscliv2.zip
+#           - ./aws/install
+#           - aws --version
+
+#           # Set up AWS credentials (replace the placeholders with your actual credentials)
+#           - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+#           - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+#           - aws configure set default.region ap-southeast-1
+
+#           # Download the file from S3 to your EC2 instance
+#           - aws s3 cp s3://aws-s3-dev/WebApp.zip C:/Websites/NETCoreWebApp
 
 image: mcr.microsoft.com/dotnet/sdk:6.0
 
@@ -15,46 +68,34 @@ pipelines:
         caches:
           - dotnetcore
         script:
-          # NOTE: zip isn't installed in the image, so we must manually add it
-          - apt-get update
-          - apt-get install zip -y
           - dotnet restore
           - dotnet build
           - dotnet test
-          - dotnet publish ./WebApp/WebApp.csproj -c Release -o ./publish
-          - cd ./publish
-          - zip -r WebApp.zip .
-          - mkdir –p $BITBUCKET_CLONE_DIR/dist
-          - cp -R WebApp.zip $BITBUCKET_CLONE_DIR/dist
-          - ls -lah $BITBUCKET_CLONE_DIR/dist
-        artifacts:
-          - dist/**
     - step:
-        name: Deploy To S3
+        name: Publish
+        deployment: staging
+        script:
+          - dotnet publish -c Release -o ./publish
+        artifacts:
+          - publish/**
+    - step:
+        name: Deploy to AWS EC2
         deployment: production
         script:
-          - pipe: atlassian/aws-s3-deploy:0.3.8
-            variables:
-              AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-              AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-              AWS_DEFAULT_REGION: "ap-southeast-1"
-              S3_BUCKET: "aws-s3-dev"
-              LOCAL_PATH: "dist"
-              ACL: "bucket-owner-full-control"
-    - step:
-        name: Copy From S3 to EC2
-        script:
-          # Set up AWS CLI
-          - apt-get update && apt-get install -y unzip
-          - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          - unzip awscliv2.zip
-          - ./aws/install
-          - aws --version
+          # Install AWS CLI if it's not pre-installed in the image
+          - apt-get update && apt-get install -y awscli
 
-          # Set up AWS credentials (replace the placeholders with your actual credentials)
-          - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          - aws configure set default.region ap-southeast-1
+          # Install and configure AWS Elastic Beanstalk CLI (EB CLI)
+          # Replace 'YOUR_EB_CLI_VERSION' with the desired EB CLI version
+          - apt-get install -y python3-pip
+          - pip3 install --upgrade awsebcli
+          - echo -e "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID\nAWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY\n" >> $HOME/.aws/credentials
 
-          # Download the file from S3 to your EC2 instance
-          - aws s3 cp s3://aws-s3-dev/WebApp.zip C:/Websites/NETCoreWebApp
+          # Copy the published artifacts to the EC2 instance
+          - aws s3 cp ./publish s3://aws-s3-dev/
+
+          # SSH into the EC2 instance and deploy the app using IIS
+          - ssh william@13.229.216.83 "aws s3 sync s3://aws-s3-dev/publish C:/Websites/NETCoreWebApp" # Replace 'user' and 'your-ec2-instance-ip' accordingly
+
+          # Optionally, restart IIS on the EC2 instance
+          - ssh william@13.229.216.83 "iisreset /restart" # Replace 'user' and 'your-ec2-instance-ip' accordingly
