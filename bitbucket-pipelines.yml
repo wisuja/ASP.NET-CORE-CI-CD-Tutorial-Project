@@ -57,4 +57,4 @@ pipelines:
           - aws configure set default.region ap-southeast-1
 
           # Download the file from S3 to your EC2 instance
-          - aws s3 cp s3://aws-s3-dev/WebApp.zip ls -al C:/Websites/NETCoreWebApp
+          - aws s3 cp s3://aws-s3-dev/WebApp.zip C:/Websites/NETCoreWebApp
