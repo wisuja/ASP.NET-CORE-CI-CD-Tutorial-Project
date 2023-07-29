@@ -75,6 +75,7 @@ pipelines:
         name: Publish
         deployment: staging
         script:
+          - apt-get update && apt-get install zip -y
           - dotnet publish -c Release -o ./publish
           - cd ./publish
           - zip -r WebApp.zip .
