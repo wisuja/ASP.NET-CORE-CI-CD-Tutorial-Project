@@ -16,6 +16,7 @@ pipelines:
         script:
           - apt-get update && apt-get install zip -y
           - dotnet publish -c Release -o ./publish
+          - cp appspec.yml ./publish/appspec.yml
           - cd ./publish
           - zip -r WebApp.zip .
           - pipe: atlassian/aws-code-deploy:0.2.5
