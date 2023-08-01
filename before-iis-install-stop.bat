@@ -4,7 +4,7 @@ REM - File: before-iis-install-stop.bat
 echo Restarting IIS...
 echo ======================================================
 
-net stop W3SVC
+appcmd stop sites "NETCoreWebApp"
 
 echo ======================================================
 echo IIS Stopped
