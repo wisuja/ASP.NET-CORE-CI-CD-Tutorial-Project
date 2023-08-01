@@ -3,3 +3,10 @@ os: windows
 files:
   - source: /
     destination: C:\Websites\NETCoreWebApp
+hooks:
+  BeforeInstall:
+    - location: \before-iis-install-stop.bat
+      timeout: 900
+  AfterInstall:
+    - location: \after-iis-install-start.bat
+      timeout: 180

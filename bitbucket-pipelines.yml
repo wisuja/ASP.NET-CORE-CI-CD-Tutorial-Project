@@ -17,6 +17,8 @@ pipelines:
           - apt-get update && apt-get install zip -y
           - dotnet publish -c Release -o ./publish
           - cp appspec.yml ./publish/appspec.yml
+          - cp before-iis-install-stop.bat ./publish/before-iis-install-stop.bat
+          - cp after-iis-install-start.bat ./publish/after-iis-install-start.bat
           - cd ./publish
           - zip -r WebApp.zip .
           - pipe: atlassian/aws-code-deploy:0.2.5
