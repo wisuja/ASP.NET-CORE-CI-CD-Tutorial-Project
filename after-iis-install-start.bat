@@ -4,7 +4,7 @@ REM - File: after-iis-install-start.bat
 echo Restarting IIS...
 echo ======================================================
 
-appcmd start sites "NETCoreWebApp"
+net start W3SVC
 
 echo ======================================================
 echo IIS Restarted
