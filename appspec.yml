@@ -2,7 +2,7 @@ version: 0.0
 os: windows
 files:
   - source: /
-    destination: C:\Websites\NETCoreWebApp
+    destination: C:\Websites\BitbucketAWSTest
 hooks:
   BeforeInstall:
     - location: \before-iis-install-stop.bat
